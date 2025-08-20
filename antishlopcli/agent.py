@@ -27,7 +27,7 @@ from prompts import (
 
 load_dotenv()
 
-llm = ChatOpenAI(api_key=os.getenv('OPENAI_API_KEY'), mode='gpt-4.1', temperature=0, top_p=0)
+llm = ChatOpenAI(api_key=os.getenv('OPENAI_API_KEY'), model='gpt-4', temperature=0, top_p=0)
 
 class State(TypedDict):
 
@@ -43,6 +43,41 @@ class State(TypedDict):
     complete: str
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+import json
+import re
+
+def parse_reflection_response(response: str) -> dict:
+    """
+    Parse reflection agent response and extract decision
+    
+    Args:
+        response: Raw text response from reflection agent
+        
+    Returns:
+        Dict with 'continue_analysis' (bool) and 'reason' (str)
+    """
+    # Try to extract JSON block first
+    json_match = re.search(r'```json\s*(\{.*?\})\s*```', response, re.DOTALL | re.IGNORECASE)
+    if json_match:
+        try:
+            return json.loads(json_match.group(1))
+        except json.JSONDecodeError:
+            pass
+    
+    # Fallback: extract fields individually
+    continue_match = re.search(r'"continue_analysis":\s*(true|false)', response, re.IGNORECASE)
+    reason_match = re.search(r'"reason":\s*"([^"]*)"', response, re.DOTALL)
+    
+    if continue_match:
+        return {
+            "continue_analysis": continue_match.group(1).lower() == "true",
+            "reason": reason_match.group(1) if reason_match else ""
+        }
+    
+    # Default if parsing fails
+    return {"continue_analysis": False, "reason": "Failed to parse response"}
+
 
 def parse_planner_response(response_content: str) -> Dict[str, Any]:
     """Parser for planner agent response"""
@@ -268,12 +303,14 @@ def planner_node(state):
     state['selected_tools'] = output['selected_tools']
     state['plan'] = output['plan']
 
+    state['reflection'] = False
+
     return state
 
 
 def execute_node(state):
     
-        tool_functions = {
+    tool_functions = {
         "static_vulnerability_scanner": static_vulnerability_scanner,
         "secrets_detector": secrets_detector,
         "dependency_vulnerability_checker": dependency_vulnerability_checker,
@@ -303,9 +340,63 @@ def execute_node(state):
     return state
     
 def reflection_node(state):
-    pass
+    
+    formatted_prompt = reflection_prompt.format(current_findings=state['vulnerabilities'], context=state['context'], tool_trace=state['tool_trace'], file_content=state['file_content'])
+    response = llm.invoke(formatted_prompt)
+
+    output = parse_reflection_response(response.content.strip())
+
+    if output['continue_analysis']:
+        state['reflection'] = True
+        state['reflection_reason'] = output['reason']
+        state['selected_tools'] = []
+        state['plan'] = ""
+
+        return state
+    else:
+        return state
+    
+    
+
 
 def summation_node(state):
-    pass
+    
+    formatted_prompt = summation_prompt.format(vulnerabilities=state['vulnerabilities'])
+    response = llm.invoke(formatted_prompt)
+
+    state['final_report'] = response.content.strip()
+
+    return state
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Agent(file_content):
+    
+    state = State()
+    state['context'] = []
+    state['file_content'] = file_content
+    state['plan'] = ""
+    state['selected_tools'] = []
+    state['reflection'] = False
+    state['final_report'] = ""
+    state['tool_trace'] = []
+    state['reflection_reason'] = "Initial analysis required"
+    state['vulnerabilities'] = []
+    state['complete'] = ""
+
+    while True:
+
+        state = planner_node(state)
+
+        state = execute_node(state)
+
+        state = reflection_node(state)
+
+        if not state['reflection']:
+            break
+
+    state = summation_node(state)
+    state['complete'] = "Analysis complete"
+    
+    return state['final_report']
+
