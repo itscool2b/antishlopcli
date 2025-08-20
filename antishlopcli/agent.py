@@ -3,6 +3,7 @@ from typing import Dict, TypedDict, Any, List
 import json
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
+import tiktoken
 
 from antishlopcli.prompts import (
     planner_prompt,
@@ -29,6 +30,17 @@ load_dotenv()
 
 llm = ChatOpenAI(api_key=os.getenv('OPENAI_API_KEY'), model='gpt-4.1', temperature=0, top_p=0)
 
+# Token counter
+try:
+    encoding = tiktoken.encoding_for_model("gpt-4")
+except:
+    encoding = tiktoken.get_encoding("cl100k_base")
+
+def count_tokens(text):
+    if not text:
+        return 0
+    return len(encoding.encode(str(text)))
+
 class State(TypedDict):
 
     context: list[str]
@@ -41,6 +53,7 @@ class State(TypedDict):
     reflection_reason: str
     vulnerabilities: list[dict]
     complete: str
+    tokens_used: int
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
@@ -163,10 +176,16 @@ def parse_security_tool_response(response_content: str, tool_name: str = "") -> 
     except json.JSONDecodeError:
         return []
 
-def static_vulnerability_scanner(state):
+def static_vulnerability_scanner(state, token_callback=None):
     
     formatted_prompt = static_vulnerability_scanner_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"static_vulnerability_scanner")
 
     state['vulnerabilities'].extend(vulns)
@@ -174,140 +193,224 @@ def static_vulnerability_scanner(state):
     return state
 
 
-def secrets_detector(state):
+def secrets_detector(state, token_callback=None):
     
     formatted_prompt = secrets_detector_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"secrets_detector")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def dependency_vulnerability_checker(state):
+def dependency_vulnerability_checker(state, token_callback=None):
     
     formatted_prompt = dependency_vulnerability_checker_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"dependency_vulnerability_checker")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def auth_analyzer(state):
+def auth_analyzer(state, token_callback=None):
     
     formatted_prompt = auth_analyzer_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"auth_analyzer")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def input_validation_analyzer(state):
+def input_validation_analyzer(state, token_callback=None):
     
     formatted_prompt = input_validation_analyzer_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"input_validation_analyzer")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def crypto_analyzer(state):
+def crypto_analyzer(state, token_callback=None):
     
     formatted_prompt = crypto_analyzer_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"crypto_analyzer")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def data_security_analyzer(state):
+def data_security_analyzer(state, token_callback=None):
     
     formatted_prompt = data_security_analyzer_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"data_security_analyzer")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def config_security_checker(state):
+def config_security_checker(state, token_callback=None):
     
     formatted_prompt = config_security_checker_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"config_security_checker")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def business_logic_analyzer(state):
+def business_logic_analyzer(state, token_callback=None):
     
     formatted_prompt = business_logic_analyzer_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"business_logic_analyzer")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def error_handling_analyzer(state):
+def error_handling_analyzer(state, token_callback=None):
     
     formatted_prompt = error_handling_analyzer_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"error_handling_analyzer")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def code_quality_security(state):
+def code_quality_security(state, token_callback=None):
     
     formatted_prompt = code_quality_security_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"code_quality_security")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def infrastructure_security(state):
+def infrastructure_security(state, token_callback=None):
     
     formatted_prompt = infrastructure_security_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"infrastructure_security")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def api_security_analyzer(state):
+def api_security_analyzer(state, token_callback=None):
     
     formatted_prompt = api_security_analyzer_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"api_security_analyzer")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def filesystem_security(state):
+def filesystem_security(state, token_callback=None):
     
     formatted_prompt = filesystem_security_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"filesystem_security")
 
     state['vulnerabilities'].extend(vulns)
     
     return state
 
-def concurrency_analyzer(state):
+def concurrency_analyzer(state, token_callback=None):
     
     formatted_prompt = concurrency_analyzer_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
     vulns = parse_security_tool_response(response.content.strip(),"concurrency_analyzer")
 
     state['vulnerabilities'].extend(vulns)
@@ -319,7 +422,7 @@ def concurrency_analyzer(state):
 def context_node(state):
     pass
 
-def planner_node(state):
+def planner_node(state, token_callback=None):
     
     # Format the prompt template
     formatted_prompt = planner_prompt.format(
@@ -329,7 +432,19 @@ def planner_node(state):
         reflection=state['reflection'], 
         file_content=state['file_content']
     )
+    
+    # Count input tokens
+    input_tokens = count_tokens(formatted_prompt)
+    state['tokens_used'] += input_tokens
+    
     response = llm.invoke(formatted_prompt)
+    
+    # Count output tokens
+    output_tokens = count_tokens(response.content)
+    state['tokens_used'] += output_tokens
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
 
     output = parse_planner_response(response.content.strip())
     state['selected_tools'] = output['selected_tools']
@@ -340,7 +455,7 @@ def planner_node(state):
     return state
 
 
-def execute_node(state):
+def execute_node(state, token_callback=None):
     
     tool_functions = {
         "static_vulnerability_scanner": static_vulnerability_scanner,
@@ -364,17 +479,22 @@ def execute_node(state):
     for tool_name in state['selected_tools']:
         if tool_name in tool_functions:
         
-            state = tool_functions[tool_name](state)
+            state = tool_functions[tool_name](state, token_callback)
             state['tool_trace'].append(tool_name)
         else:
             print(f"Warning: Unknown tool '{tool_name}'")
     
     return state
     
-def reflection_node(state):
+def reflection_node(state, token_callback=None):
     
     formatted_prompt = reflection_prompt.format(current_findings=state['vulnerabilities'], context=state['context'], tool_trace=state['tool_trace'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
     response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
 
     output = parse_reflection_response(response.content.strip())
 
@@ -413,7 +533,7 @@ def summation_node(state):
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
-def Agent(file_content):
+def Agent(file_content, token_callback=None):
     
     state = State()
     state['context'] = []
@@ -426,6 +546,7 @@ def Agent(file_content):
     state['reflection_reason'] = "Initial analysis required"
     state['vulnerabilities'] = []
     state['complete'] = ""
+    state['tokens_used'] = 0
 
     max_iterations = 3
     iteration = 0
@@ -433,11 +554,11 @@ def Agent(file_content):
     while iteration < max_iterations:
         iteration += 1
 
-        state = planner_node(state)
+        state = planner_node(state, token_callback)
 
-        state = execute_node(state)
+        state = execute_node(state, token_callback)
 
-        state = reflection_node(state)
+        state = reflection_node(state, token_callback)
 
         if not state['reflection']:
             break
@@ -445,5 +566,5 @@ def Agent(file_content):
     state = summation_node(state)
     state['complete'] = "Analysis complete"
     
-    return state['final_report']
+    return state['final_report'], state['tokens_used']
 

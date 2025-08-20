@@ -32,6 +32,10 @@ class SecurityScanner:
         return files
     
     def scan(self):
+        import time
+        import threading
+        from rich.live import Live
+        
         files = self.get_files()
         total = len(files)
         
@@ -44,42 +48,76 @@ class SecurityScanner:
             f"[dim]Scanning {total} files in {self.path}[/dim]",
             border_style="cyan"
         ))
+        console.print()
         
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-            TimeRemainingColumn(),
-            console=console
-        ) as progress:
-            scan_task = progress.add_task("[cyan]Scanning files...", total=total)
+        total_tokens = 0
+        
+        for i, file_path in enumerate(files, 1):
+            rel_path = file_path.relative_to(self.path)
+            start_time = time.time()
+            current_tokens = 0
+            agent_done = threading.Event()
             
-            for i, file_path in enumerate(files, 1):
-                rel_path = file_path.relative_to(self.path)
-                progress.update(scan_task, description=f"[cyan]Scanning: {rel_path.name}")
+            # Show current file status
+            console.print(f"[{i}/{total}] [cyan]Scanning:[/cyan] {rel_path}")
+            
+            try:
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read()
                 
-                try:
-                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                        content = f.read()
-                    
-                    report = Agent(content)
-                    
-                    self.reports.append({
-                        'file': str(rel_path),
-                        'status': 'scanned',
-                        'report': report
-                    })
-                    
-                except Exception as e:
-                    self.reports.append({
-                        'file': str(rel_path),
-                        'status': 'error',
-                        'report': str(e)
-                    })
+                # Token callback to update live display
+                def update_tokens(tokens):
+                    nonlocal current_tokens
+                    current_tokens = tokens
                 
-                progress.update(scan_task, advance=1)
+                # Run agent in thread
+                report = None
+                tokens_used = 0
+                
+                def run_agent():
+                    nonlocal report, tokens_used
+                    report, tokens_used = Agent(content, token_callback=update_tokens)
+                    agent_done.set()
+                
+                agent_thread = threading.Thread(target=run_agent)
+                agent_thread.start()
+                
+                # Live update while agent runs
+                with Live(console=console, refresh_per_second=10) as live:
+                    while not agent_done.is_set():
+                        elapsed = time.time() - start_time
+                        live.update(f"      [yellow]⟳[/yellow] Analyzing... [cyan]{current_tokens:,} tokens[/cyan] • [dim]{elapsed:.1f}s[/dim]")
+                        time.sleep(0.1)
+                
+                agent_thread.join()
+                elapsed = time.time() - start_time
+                
+                # Update with actual results
+                console.print(f"      [green]✓[/green] Complete in {elapsed:.1f}s • {tokens_used:,} tokens")
+                
+                total_tokens += tokens_used
+                
+                self.reports.append({
+                    'file': str(rel_path),
+                    'status': 'scanned',
+                    'report': report,
+                    'scan_time': elapsed,
+                    'tokens_used': tokens_used
+                })
+                
+            except Exception as e:
+                elapsed = time.time() - start_time
+                console.print(f"      [red]✗[/red] Error: {str(e)[:50]}...")
+                
+                self.reports.append({
+                    'file': str(rel_path),
+                    'status': 'error',
+                    'report': str(e),
+                    'scan_time': elapsed,
+                    'tokens_used': 0
+                })
         
+        console.print(f"\n[bold]Total tokens used: {total_tokens:,}[/bold]")
         return self.reports
     
     def display_results(self):
@@ -115,6 +153,13 @@ class SecurityScanner:
         console.print(f"  Total files: {len(self.reports)}")
         console.print(f"  Files with issues: {issues_count}")
         console.print(f"  Scan errors: {error_count}")
+        
+        # Calculate total time and tokens
+        total_time = sum(r.get('scan_time', 0) for r in self.reports)
+        total_tokens = sum(r.get('tokens_used', 0) for r in self.reports)
+        
+        console.print(f"  Total scan time: {total_time:.1f}s")
+        console.print(f"  Total tokens used: {total_tokens:,}")
         
         # Display detailed findings
         console.print("\n" + "="*60)

@@ -20,6 +20,7 @@ setup(
         'langchain==0.3.23',
         'langchain-openai==0.3.12',
         'langgraph==0.2.67',
-        'typing-extensions'
+        'typing-extensions',
+        'tiktoken'
     ]
 )
