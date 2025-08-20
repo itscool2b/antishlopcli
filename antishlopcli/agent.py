@@ -4,7 +4,7 @@ import json
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
-from prompts import (
+from antishlopcli.prompts import (
     planner_prompt,
     static_vulnerability_scanner_prompt,
     secrets_detector_prompt,
@@ -27,7 +27,7 @@ from prompts import (
 
 load_dotenv()
 
-llm = ChatOpenAI(api_key=os.getenv('OPENAI_API_KEY'), model='gpt-4', temperature=0, top_p=0)
+llm = ChatOpenAI(api_key=os.getenv('OPENAI_API_KEY'), model='gpt-4.1', temperature=0, top_p=0)
 
 class State(TypedDict):
 
@@ -82,7 +82,17 @@ def parse_reflection_response(response: str) -> dict:
 def parse_planner_response(response_content: str) -> Dict[str, Any]:
     """Parser for planner agent response"""
     try:
-        planner_result = json.loads(response_content.strip())
+        # Try to extract JSON from the response
+        content = response_content.strip()
+        
+        # If response contains ```json blocks, extract them
+        if '```json' in content:
+            import re
+            json_match = re.search(r'```json\s*(.*?)\s*```', content, re.DOTALL)
+            if json_match:
+                content = json_match.group(1)
+        
+        planner_result = json.loads(content)
         
         # Validate required fields
         if not isinstance(planner_result, dict):
@@ -108,34 +118,49 @@ def parse_planner_response(response_content: str) -> Dict[str, Any]:
             print(f"Warning: plan should be string, got {type(planner_result['plan'])}")
             planner_result["plan"] = str(planner_result["plan"])
         
-        print(f"Planner selected {len(planner_result['selected_tools'])} tools")
         return planner_result
         
     except json.JSONDecodeError as e:
         print(f"Error parsing planner JSON response: {e}")
-        print(f"Response content: {response_content}")
-        return {"selected_tools": [], "plan": ""}
+        print(f"Response content: {response_content[:200]}")
+        # Return default tools to at least scan something
+        return {
+            "selected_tools": ["static_vulnerability_scanner", "secrets_detector"], 
+            "plan": "Basic security scan"
+        }
 
 
 def parse_security_tool_response(response_content: str, tool_name: str = "") -> List[Dict[str, Any]]:
     """Generic parser for all security tool responses"""
     try:
-        vulnerabilities = json.loads(response_content)
+        if not response_content or response_content.strip() == "":
+            return []
+        
+        content = response_content.strip()
+        
+        # Extract JSON from markdown code blocks if present
+        if '```json' in content:
+            import re
+            json_match = re.search(r'```json\s*(.*?)\s*```', content, re.DOTALL)
+            if json_match:
+                content = json_match.group(1)
+        elif '```' in content:
+            import re
+            json_match = re.search(r'```\s*(.*?)\s*```', content, re.DOTALL)
+            if json_match:
+                content = json_match.group(1)
+            
+        vulnerabilities = json.loads(content)
         
         if not isinstance(vulnerabilities, list):
-            print(f"Warning: {tool_name} - Expected list, got {type(vulnerabilities)}")
             return []
         
-        # Check if empty array
-        if len(vulnerabilities) == 0:
-            print(f"{tool_name}: No vulnerabilities detected")
-            return []
+        if len(vulnerabilities) > 0:
+            print(f"{tool_name}: Found {len(vulnerabilities)} potential vulnerabilities")
         
-        print(f"{tool_name}: Found {len(vulnerabilities)} potential vulnerabilities")
         return vulnerabilities
         
-    except json.JSONDecodeError as e:
-        print(f"Error parsing {tool_name} JSON response: {e}")
+    except json.JSONDecodeError:
         return []
 
 def static_vulnerability_scanner(state):
@@ -296,7 +321,14 @@ def context_node(state):
 
 def planner_node(state):
     
-    formatted_prompt = planner_prompt.format(context=state['context'], reason=state['reflection_reason'], tool_trace=state['tool_trace'], reflection=state['reflection'], file_content=state['file_content'])
+    # Format the prompt template
+    formatted_prompt = planner_prompt.format(
+        context=state['context'], 
+        reason=state['reflection_reason'], 
+        tool_trace=state['tool_trace'], 
+        reflection=state['reflection'], 
+        file_content=state['file_content']
+    )
     response = llm.invoke(formatted_prompt)
 
     output = parse_planner_response(response.content.strip())
@@ -361,10 +393,21 @@ def reflection_node(state):
 
 def summation_node(state):
     
-    formatted_prompt = summation_prompt.format(vulnerabilities=state['vulnerabilities'])
-    response = llm.invoke(formatted_prompt)
-
-    state['final_report'] = response.content.strip()
+    # If no vulnerabilities, return simple message
+    if not state['vulnerabilities']:
+        state['final_report'] = "No security vulnerabilities detected in this file."
+        return state
+    
+    # Create a simple summary without calling LLM again
+    report = f"Found {len(state['vulnerabilities'])} security vulnerabilities:\n\n"
+    
+    for vuln in state['vulnerabilities']:
+        if isinstance(vuln, dict):
+            report += f"• {vuln.get('vulnerability_type', 'Unknown')} (Severity: {vuln.get('severity', 'Unknown')})\n"
+            report += f"  Line {vuln.get('line_number', 'Unknown')}: {vuln.get('description', 'No description')}\n"
+            report += f"  Fix: {vuln.get('remediation', 'No remediation provided')}\n\n"
+    
+    state['final_report'] = report
 
     return state
 
@@ -384,7 +427,11 @@ def Agent(file_content):
     state['vulnerabilities'] = []
     state['complete'] = ""
 
-    while True:
+    max_iterations = 3
+    iteration = 0
+    
+    while iteration < max_iterations:
+        iteration += 1
 
         state = planner_node(state)
 

@@ -10,7 +10,7 @@ from rich.table import Table
 from rich.panel import Panel
 from rich.text import Text
 from colorama import init
-from agent import Agent
+from antishlopcli.agent import Agent
 
 init(autoreset=True)
 console = Console()

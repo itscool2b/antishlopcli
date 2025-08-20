@@ -109,13 +109,13 @@ From tool trace determine:
 ## Output Format
 
 ```json
-{
+{{
   "selected_tools": [
     "tool_name_1",
     "tool_name_2"
   ],
   "plan": "Strategic reasoning for tool selection based on analysis mode and reflection feedback"
-}
+}}
 ```
 
 **Priority**: Comprehensive security coverage over efficiency. Select as many tools as are relevant and justified by the analysis.
@@ -184,14 +184,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "specific vulnerability type",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code snippet",
     "description": "detailed vulnerability description",
     "remediation": "specific fix recommendation"
-  }
+  }}
 ]
 ```
 
@@ -273,14 +273,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "HARDCODED_SECRET",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code with secret redacted",
     "description": "type of secret found and exposure risk",
     "remediation": "use environment variables or secret management service"
-  }
+  }}
 ]
 ```
 
@@ -354,14 +354,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "VULNERABLE_DEPENDENCY|OUTDATED_PACKAGE|SUPPLY_CHAIN_RISK",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "dependency declaration",
     "description": "package name, version, and vulnerability details (CVE if applicable)",
     "remediation": "upgrade to version X.X.X or specific mitigation"
-  }
+  }}
 ]
 ```
 
@@ -453,14 +453,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "AUTH_BYPASS|PRIVILEGE_ESCALATION|SESSION_VULN|JWT_FLAW",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code snippet",
     "description": "detailed vulnerability description and attack vector",
     "remediation": "specific fix recommendation"
-  }
+  }}
 ]
 ```
 
@@ -559,14 +559,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "SQL_INJECTION|XSS|COMMAND_INJECTION|PATH_TRAVERSAL",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code snippet",
     "description": "vulnerability details and injection point",
     "remediation": "use parameterized queries/encoding/validation"
-  }
+  }}
 ]
 ```
 
@@ -657,14 +657,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "WEAK_CRYPTO|KEY_MANAGEMENT|CRYPTO_IMPLEMENTATION",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code snippet",
     "description": "crypto weakness and potential impact",
     "remediation": "use strong algorithms/proper key management"
-  }
+  }}
 ]
 ```
 
@@ -755,14 +755,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "PII_EXPOSURE|DATA_CLASSIFICATION|ENCRYPTION_GAP",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code snippet",
     "description": "data security issue and compliance impact",
     "remediation": "encryption/masking/classification recommendation"
-  }
+  }}
 ]
 ```
 
@@ -856,14 +856,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "MISSING_HEADER|CORS_MISCONFIGURATION|CSP_WEAKNESS|INSECURE_CONFIG",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant configuration",
     "description": "configuration issue and security impact",
     "remediation": "specific configuration fix"
-  }
+  }}
 ]
 ```
 
@@ -954,14 +954,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "RACE_CONDITION|WORKFLOW_BYPASS|LOGIC_BOMB|BUSINESS_LOGIC_FLAW",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code snippet",
     "description": "logic vulnerability and exploitation scenario",
     "remediation": "add synchronization/validation/checks"
-  }
+  }}
 ]
 ```
 
@@ -1052,14 +1052,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "STACK_TRACE_EXPOSURE|DEBUG_INFO_LEAK|VERBOSE_ERROR|INFO_DISCLOSURE",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code snippet",
     "description": "information exposed and risk assessment",
     "remediation": "implement generic error messages and secure logging"
-  }
+  }}
 ]
 ```
 
@@ -1150,14 +1150,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "COMMENTED_SECRET|DEAD_CODE_VULNERABILITY|DEV_ARTIFACT|CODE_SMELL_SECURITY",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code or comment",
     "description": "security issue in code quality",
     "remediation": "remove dead code/comments and clean up"
-  }
+  }}
 ]
 ```
 
@@ -1252,14 +1252,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "DOCKER_SECURITY|K8S_MISCONFIGURATION|CLOUD_PERMISSION|IAC_SECURITY",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant configuration",
     "description": "infrastructure security issue and impact",
     "remediation": "specific infrastructure security fix"
-  }
+  }}
 ]
 ```
 
@@ -1354,14 +1354,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "RATE_LIMIT_MISSING|ENDPOINT_ENUMERATION|PARAMETER_POLLUTION|API_VULNERABILITY",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code snippet",
     "description": "API security issue and attack vector",
     "remediation": "implement rate limiting/validation/authorization"
-  }
+  }}
 ]
 ```
 
@@ -1456,14 +1456,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "PATH_TRAVERSAL|FILE_PERMISSION|SYMLINK_ATTACK|FILE_OPERATION",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code snippet",
     "description": "filesystem vulnerability and exploitation",
     "remediation": "validate paths/fix permissions/prevent symlink attacks"
-  }
+  }}
 ]
 ```
 
@@ -1558,14 +1558,14 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 
 ```json
 [
-  {
+  {{
     "vulnerability_type": "RACE_CONDITION|DEADLOCK|SHARED_RESOURCE|SYNCHRONIZATION_FLAW",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code snippet",
     "description": "concurrency issue and potential impact",
     "remediation": "add synchronization/fix locking/ensure thread safety"
-  }
+  }}
 ]
 ```
 
@@ -1640,10 +1640,10 @@ For each analysis, consider:
 ## Output Format
 
 ```json
-{
+{{
   "continue_analysis": true/false,
   "reason": "Explanation of why analysis should continue or is complete"
-}
+}}
 ```
 
 **continue_analysis**: Boolean indicating if additional security analysis is needed
