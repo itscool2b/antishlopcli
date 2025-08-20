@@ -533,7 +533,7 @@ def summation_node(state):
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
-def Agent(file_content, token_callback=None):
+def Agent(file_content, token_callback=None, status_callback=None):
     
     state = State()
     state['context'] = []
@@ -562,6 +562,10 @@ def Agent(file_content, token_callback=None):
 
         if not state['reflection']:
             break
+        else:
+            # Notify user that agent is doing deeper analysis
+            if status_callback:
+                status_callback(f"iteration_{iteration + 1}")
 
     state = summation_node(state)
     state['complete'] = "Analysis complete"

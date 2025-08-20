@@ -1,9 +1,14 @@
 from setuptools import setup
 
+with open('README.md', 'r') as f:
+    long_description = f.read()
+
 setup(
     name='antishlopcli',
     version='1.0.0',
     description='Anti-vibe coding and security tool',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     author='Arjun Bajpai',
     author_email='ArjunBajpai@tutamail.com',
     packages=['antishlopcli'],

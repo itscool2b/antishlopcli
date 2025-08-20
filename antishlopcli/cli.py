@@ -24,11 +24,23 @@ class SecurityScanner:
         
     def get_files(self):
         files = []
-        for root, dirs, filenames in os.walk(self.path):
-            dirs[:] = [d for d in dirs if d not in self.ignore_dirs]
-            for filename in filenames:
-                if any(filename.endswith(ext) for ext in self.code_extensions):
-                    files.append(Path(root) / filename)
+        
+        # Check if path is a file or directory
+        if self.path.is_file():
+            # Single file - check if it's a code file
+            if any(str(self.path).endswith(ext) for ext in self.code_extensions):
+                files.append(self.path)
+            else:
+                console.print(f"[yellow]Warning: {self.path.name} is not a recognized code file[/yellow]")
+                # Still add it if user specified it directly
+                files.append(self.path)
+        else:
+            # Directory - walk through all files
+            for root, dirs, filenames in os.walk(self.path):
+                dirs[:] = [d for d in dirs if d not in self.ignore_dirs]
+                for filename in filenames:
+                    if any(filename.endswith(ext) for ext in self.code_extensions):
+                        files.append(Path(root) / filename)
         return files
     
     def scan(self):
@@ -43,9 +55,15 @@ class SecurityScanner:
             console.print("[yellow]No code files found to scan![/yellow]")
             return []
         
+        # Show appropriate message for file vs directory
+        if self.path.is_file():
+            scan_msg = f"Scanning file: {self.path.name}"
+        else:
+            scan_msg = f"Scanning {total} files in {self.path}"
+            
         console.print(Panel.fit(
             f"[bold cyan]AntiShlop Security Scanner[/bold cyan]\n"
-            f"[dim]Scanning {total} files in {self.path}[/dim]",
+            f"[dim]{scan_msg}[/dim]",
             border_style="cyan"
         ))
         console.print()
@@ -59,7 +77,11 @@ class SecurityScanner:
             agent_done = threading.Event()
             
             # Show current file status
-            console.print(f"[{i}/{total}] [cyan]Scanning:[/cyan] {rel_path}")
+            if self.path.is_file():
+                # For single file, don't show relative path
+                console.print(f"[cyan]Scanning:[/cyan] {file_path.name}")
+            else:
+                console.print(f"[{i}/{total}] [cyan]Scanning:[/cyan] {rel_path}")
             
             try:
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
@@ -70,13 +92,22 @@ class SecurityScanner:
                     nonlocal current_tokens
                     current_tokens = tokens
                 
+                # Status callback for iteration updates
+                iteration_status = ""
+                
+                def update_status(status):
+                    nonlocal iteration_status
+                    if status.startswith("iteration_"):
+                        iter_num = status.split("_")[1]
+                        console.print(f"      [magenta]↻[/magenta] Deeper analysis needed - starting iteration {iter_num}")
+                
                 # Run agent in thread
                 report = None
                 tokens_used = 0
                 
                 def run_agent():
                     nonlocal report, tokens_used
-                    report, tokens_used = Agent(content, token_callback=update_tokens)
+                    report, tokens_used = Agent(content, token_callback=update_tokens, status_callback=update_status)
                     agent_done.set()
                 
                 agent_thread = threading.Thread(target=run_agent)
@@ -199,12 +230,13 @@ def main():
         epilog='''
 Examples:
   antishlop .                    # Scan current directory
-  antishlop /path/to/project     # Scan specific project
+  antishlop /path/to/project     # Scan specific project directory
+  antishlop /path/to/file.py     # Scan a single file
   antishlop . -o report.json     # Save report to specific file
         '''
     )
     
-    parser.add_argument('path', help='Path to codebase to scan')
+    parser.add_argument('path', help='Path to file or directory to scan')
     parser.add_argument('-o', '--output', help='Output file for JSON report')
     parser.add_argument('-q', '--quiet', action='store_true', help='Quiet mode, minimal output')
     
@@ -212,10 +244,6 @@ Examples:
     
     if not os.path.exists(args.path):
         console.print(f"[red]Error: Path '{args.path}' does not exist[/red]")
-        sys.exit(1)
-    
-    if not os.path.isdir(args.path):
-        console.print(f"[red]Error: '{args.path}' is not a directory[/red]")
         sys.exit(1)
     
     scanner = SecurityScanner(args.path)
