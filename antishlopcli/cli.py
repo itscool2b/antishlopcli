@@ -71,7 +71,11 @@ class SecurityScanner:
         total_tokens = 0
         
         for i, file_path in enumerate(files, 1):
-            rel_path = file_path.relative_to(self.path)
+            # For single file, use the filename; for directory scan, use relative path
+            if self.path.is_file():
+                rel_path = self.path.name
+            else:
+                rel_path = file_path.relative_to(self.path)
             start_time = time.time()
             current_tokens = 0
             agent_done = threading.Event()
@@ -172,10 +176,10 @@ class SecurityScanner:
                 error_count += 1
             else:
                 status_display = "[green]✓[/green]"
-                if report['report'] and "no vulnerabilities" not in report['report'].lower():
+                if report['report'] and "no vulnerabilities" not in report['report'].lower() and "no security vulnerabilities" not in report['report'].lower():
                     issues_count += 1
             
-            has_issues = "Yes" if report['report'] and "no vulnerabilities" not in report['report'].lower() else "No"
+            has_issues = "Yes" if report['report'] and "no security vulnerabilities" not in report['report'].lower() and "no vulnerabilities" not in report['report'].lower() else "No"
             table.add_row(report['file'], status_display, has_issues)
         
         console.print(table)
@@ -201,7 +205,7 @@ class SecurityScanner:
             if report['status'] == 'error':
                 console.print(f"\n[red]❌ {report['file']}[/red]")
                 console.print(f"[dim]Error: {report['report']}[/dim]")
-            elif report['report'] and "no vulnerabilities" not in report['report'].lower():
+            elif report['report'] and "no vulnerabilities" not in report['report'].lower() and "no security vulnerabilities" not in report['report'].lower():
                 console.print(f"\n[yellow]⚠️  {report['file']}[/yellow]")
                 console.print(Panel(report['report'], border_style="yellow", padding=(1, 2)))
             else:
