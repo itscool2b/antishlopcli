@@ -2,6 +2,11 @@
 
 AI-powered security analysis agent for code files.
 
+## Prerequisites
+
+```bash
+Set your openai api key in your .env file first. Otherwise it will return an erro
+```
 ## Installation
 
 ```bash

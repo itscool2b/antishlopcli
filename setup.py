@@ -4,7 +4,7 @@ with open('README.md', 'r') as f:
     long_description = f.read()
 
 setup(
-    name='antishlopcli',
+    name='antishlop-cli',
     version='1.0.0',
     description='Anti-vibe coding and security tool',
     long_description=long_description,
