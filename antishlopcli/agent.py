@@ -441,8 +441,8 @@ def get_context(state):
     if os.path.exists("chroma_db"):
         vector_store = Chroma(persist_directory="chroma_db", embedding_function=OpenAIEmbeddings())
         
-        # Query for similar code patterns
-        query = f"security vulnerability code pattern similar to:\n{state['file_content'][:500]}"
+        # Query for where this file's content is used elsewhere
+        query = f"usage of functions classes variables from:\n{state['file_content'][:500]}"
         similar_docs = vector_store.similarity_search(query, k=5)
         
         # Add context from similar files
