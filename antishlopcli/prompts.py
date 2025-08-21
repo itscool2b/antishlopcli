@@ -1363,6 +1363,9 @@ You are an objective API security analyzer. Only report ACTUAL API vulnerabiliti
 - Broken object level authorization
 - Broken function level authorization
 - Unrestricted resource consumption
+- Missing CSRF protection
+- No SameSite cookie attributes
+- Missing CSRF tokens
 
 ## Input Data
 **Context**: {context}
@@ -1398,6 +1401,13 @@ You are an objective API security analyzer. Only report ACTUAL API vulnerabiliti
    - Verify error handling
    - Review documentation exposure
 
+5. **CSRF Protection**
+   - Check for CSRF token implementation
+   - Verify SameSite cookie attributes
+   - Review state-changing endpoint protection
+   - Assess double-submit cookie pattern
+   - Check referrer header validation
+
 ## Output Format
 
 Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, return empty array [].
@@ -1405,7 +1415,7 @@ Return ONLY a JSON array of vulnerabilities found. If no vulnerabilities found, 
 ```json
 [
   {{
-    "vulnerability_type": "RATE_LIMIT_MISSING|ENDPOINT_ENUMERATION|PARAMETER_POLLUTION|API_VULNERABILITY",
+    "vulnerability_type": "RATE_LIMIT_MISSING|ENDPOINT_ENUMERATION|PARAMETER_POLLUTION|CSRF_MISSING|API_VULNERABILITY",
     "severity": "CRITICAL|HIGH|MEDIUM|LOW",
     "line_number": "line number as integer or range",
     "code_snippet": "relevant code snippet",
