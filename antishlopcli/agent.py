@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 import tiktoken
 from langchain_chroma import Chroma
+from antishlopcli.config import get_validated_api_key
 
 from antishlopcli.prompts import (
     planner_prompt,
@@ -29,7 +30,9 @@ from antishlopcli.prompts import (
 
 load_dotenv()
 
-llm = ChatOpenAI(api_key=os.getenv('OPENAI_API_KEY'), model='gpt-4.1', temperature=0, top_p=0)
+# Initialize LLM with validated API key
+api_key = get_validated_api_key()
+llm = ChatOpenAI(api_key=api_key, model='gpt-4.1', temperature=0, top_p=0)
 
 # Token counter
 try:

@@ -1,64 +1,66 @@
 # AntiShlop Security Agent
 
-AI-powered security analysis agent for code files.
+AI-powered security agent for code files.
 
-## Prerequisites
-
-```bash
-#Set your openai api key in your .env file first. Otherwise it will return an error
-
-.env
-OPENAI_API_KEY=yourapikey
-
-```
 ## Installation
 
 ```bash
-pip install antishlopcli
+pip install antishlop-cli
+```
+
+## Setup
+
+Set your OpenAI API key:
+
+```bash
+# Option 1: Environment variable
+export OPENAI_API_KEY=your_api_key_here
+
+# Option 2: .env file
+echo "OPENAI_API_KEY=your_api_key_here" > .env
+
+# Option 3: Interactive setup (will prompt automatically)
+antishlop path/to/file.py
 ```
 
 ## Usage
 
 ```bash
-# Analyze a single file (recommended)
-antishlop /path/to/file.py
+# Analyze a single file
+antishlop file.py
 
-# Analyze entire directory (not recommended - slow and huge reports)
+# Analyze a directory
 antishlop /path/to/project
 
-# Save report to JSON
+# Save detailed report to JSON
 antishlop file.py -o report.json
+
+# Quiet mode (minimal output)
+antishlop file.py -q
 ```
+
+## What It Does
+
+- Detects **53 types** of security vulnerabilities
+- Uses **GPT-4.1** with specialized security analysis tools
+- Shows **real-time token usage** during analysis
+- Supports **file-by-file** or **directory** analysis
+- **Automatic deeper analysis** when issues are found
+- **Vector database context** from your entire codebase
+
+## Supported Languages
+
+Python • JavaScript • TypeScript • Java • Go • Ruby • PHP • C/C++ • C#
 
 ## Features
 
-- **AI Security Agent**: Uses GPT-4.1 agent to detect vulnerabilities
-- **15+ Security Tools**: SQL injection, XSS, path traversal, crypto issues, and more
-- **Live Token Counter**: Shows real-time LLM token usage during analysis
-- **Reflection System**: Agent automatically performs deeper analysis when needed
-- **Multiple Languages**: Python, JavaScript, Ruby, Go, PHP, Java, C/C++, C#
-
-## Output
-
-- Real-time analysis progress with token counter
-- Color-coded terminal output
-- Detailed vulnerability reports
-- JSON export for CI/CD integration
-
-## Performance
-
-**Important**: Analyze files individually. Directory analysis will be very slow and generate unreadable reports.
-
-```bash
-# Recommended
-antishlop src/auth.py
-antishlop src/database.py
-
-# Not recommended (slow, huge report)
-antishlop src/
-```
+- **Interactive Setup**: Automatically prompts for API key if not found
+- **Beautiful UI**: Animated progress, colored output, professional styling  
+- **Graceful Exit**: Ctrl+C exits cleanly without error messages
+- **Context Aware**: Uses vector database to understand code relationships
+- **JSON Export**: Machine-readable reports for CI/CD integration
 
 ## Requirements
 
 - Python 3.8+
-- OpenAI API key (set as OPENAI_API_KEY environment variable)
+- OpenAI API key

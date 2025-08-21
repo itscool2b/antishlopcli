@@ -6,7 +6,7 @@ with open('README.md', 'r') as f:
 setup(
     name='antishlop-cli',
     version='1.0.0',
-    description='Anti-vibe coding and security tool',
+    description='Anti-vibe coding and security agent',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Arjun Bajpai',
