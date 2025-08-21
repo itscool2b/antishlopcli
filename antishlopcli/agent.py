@@ -2,8 +2,9 @@ import os
 from typing import Dict, TypedDict, Any, List
 import json
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 import tiktoken
+from langchain_chroma import Chroma
 
 from antishlopcli.prompts import (
     planner_prompt,
@@ -419,8 +420,42 @@ def concurrency_analyzer(state, token_callback=None):
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
-def context_node(state):
-    pass
+
+
+def context_node(codebase_path):
+    """Vectorize the entire codebase once"""
+    import shutil
+    from antishlopcli.vector_db import store_codebase
+    
+    # Clean up old vector database first
+    if os.path.exists("chroma_db"):
+        shutil.rmtree("chroma_db")
+    
+    if codebase_path and os.path.exists(codebase_path):
+        store_codebase(codebase_path, "chroma_db")
+        return True
+    return False
+
+def get_context(state):
+    """Retrieve relevant context for current file"""
+    if os.path.exists("chroma_db"):
+        vector_store = Chroma(persist_directory="chroma_db", embedding_function=OpenAIEmbeddings())
+        
+        # Query for similar code patterns
+        query = f"security vulnerability code pattern similar to:\n{state['file_content'][:500]}"
+        similar_docs = vector_store.similarity_search(query, k=5)
+        
+        # Add context from similar files
+        context_info = []
+        for doc in similar_docs:
+            file_path = doc.metadata.get('file_path', 'unknown')
+            context_info.append(f"File: {file_path}\nContent: {doc.page_content[:300]}...")
+        
+        state['context'] = context_info
+    else:
+        state['context'] = []
+    
+    return state
 
 def planner_node(state, token_callback=None):
     
@@ -536,7 +571,6 @@ def summation_node(state):
 def Agent(file_content, token_callback=None, status_callback=None):
     
     state = State()
-    state['context'] = []
     state['file_content'] = file_content
     state['plan'] = ""
     state['selected_tools'] = []
@@ -547,6 +581,8 @@ def Agent(file_content, token_callback=None, status_callback=None):
     state['vulnerabilities'] = []
     state['complete'] = ""
     state['tokens_used'] = 0
+
+    state = get_context(state)
 
     max_iterations = 3
     iteration = 0

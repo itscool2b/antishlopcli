@@ -26,6 +26,8 @@ setup(
         'langchain-openai==0.3.12',
         'langgraph==0.2.67',
         'typing-extensions',
-        'tiktoken'
+        'tiktoken',
+        'chromadb',
+        'langchain-chroma'
     ]
 )
