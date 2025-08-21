@@ -24,6 +24,14 @@ from antishlopcli.prompts import (
     api_security_analyzer_prompt,
     filesystem_security_prompt,
     concurrency_analyzer_prompt,
+    speculative_execution_prompt,
+    quantum_safe_crypto_prompt,
+    ai_ml_security_prompt,
+    supply_chain_security_prompt,
+    cloud_misconfiguration_prompt,
+    tocttou_concurrency_prompt,
+    iot_firmware_security_prompt,
+    business_logic_abuse_prompt,
     reflection_prompt,
     summation_prompt
 )
@@ -421,6 +429,134 @@ def concurrency_analyzer(state, token_callback=None):
     
     return state
 
+def speculative_execution(state, token_callback=None):
+    
+    formatted_prompt = speculative_execution_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
+    response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
+    vulns = parse_security_tool_response(response.content.strip(),"speculative_execution")
+
+    state['vulnerabilities'].extend(vulns)
+    
+    return state
+
+def quantum_safe_crypto(state, token_callback=None):
+    
+    formatted_prompt = quantum_safe_crypto_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
+    response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
+    vulns = parse_security_tool_response(response.content.strip(),"quantum_safe_crypto")
+
+    state['vulnerabilities'].extend(vulns)
+    
+    return state
+
+def ai_ml_security(state, token_callback=None):
+    
+    formatted_prompt = ai_ml_security_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
+    response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
+    vulns = parse_security_tool_response(response.content.strip(),"ai_ml_security")
+
+    state['vulnerabilities'].extend(vulns)
+    
+    return state
+
+def supply_chain_security(state, token_callback=None):
+    
+    formatted_prompt = supply_chain_security_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
+    response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
+    vulns = parse_security_tool_response(response.content.strip(),"supply_chain_security")
+
+    state['vulnerabilities'].extend(vulns)
+    
+    return state
+
+def cloud_misconfiguration(state, token_callback=None):
+    
+    formatted_prompt = cloud_misconfiguration_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
+    response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
+    vulns = parse_security_tool_response(response.content.strip(),"cloud_misconfiguration")
+
+    state['vulnerabilities'].extend(vulns)
+    
+    return state
+
+def tocttou_concurrency(state, token_callback=None):
+    
+    formatted_prompt = tocttou_concurrency_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
+    response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
+    vulns = parse_security_tool_response(response.content.strip(),"tocttou_concurrency")
+
+    state['vulnerabilities'].extend(vulns)
+    
+    return state
+
+def iot_firmware_security(state, token_callback=None):
+    
+    formatted_prompt = iot_firmware_security_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
+    response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
+    vulns = parse_security_tool_response(response.content.strip(),"iot_firmware_security")
+
+    state['vulnerabilities'].extend(vulns)
+    
+    return state
+
+def business_logic_abuse(state, token_callback=None):
+    
+    formatted_prompt = business_logic_abuse_prompt.format(context=state['context'], file_content=state['file_content'])
+    state['tokens_used'] += count_tokens(formatted_prompt)
+    response = llm.invoke(formatted_prompt)
+    state['tokens_used'] += count_tokens(response.content)
+    
+    if token_callback:
+        token_callback(state['tokens_used'])
+    
+    vulns = parse_security_tool_response(response.content.strip(),"business_logic_abuse")
+
+    state['vulnerabilities'].extend(vulns)
+    
+    return state
+
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
 
@@ -510,7 +646,15 @@ def execute_node(state, token_callback=None):
         "infrastructure_security": infrastructure_security,
         "api_security_analyzer": api_security_analyzer,
         "filesystem_security": filesystem_security,
-        "concurrency_analyzer": concurrency_analyzer
+        "concurrency_analyzer": concurrency_analyzer,
+        "speculative_execution": speculative_execution,
+        "quantum_safe_crypto": quantum_safe_crypto,
+        "ai_ml_security": ai_ml_security,
+        "supply_chain_security": supply_chain_security,
+        "cloud_misconfiguration": cloud_misconfiguration,
+        "tocttou_concurrency": tocttou_concurrency,
+        "iot_firmware_security": iot_firmware_security,
+        "business_logic_abuse": business_logic_abuse
     }
     
     
