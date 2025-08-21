@@ -5,7 +5,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name='antishlop-cli',
-    version='1.0.1',
+    version='1.1.1',
     description='Anti-vibe coding and security agent',
     long_description=long_description,
     long_description_content_type='text/markdown',
